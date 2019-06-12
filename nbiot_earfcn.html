@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8"> 
+        <title>NB-IoT Inband/Guardband EARFCN</title>
+        <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+        <style>
+
+body {
+    font-family: Verdana;
+    padding: 1em;
+}
+
+table {
+    border: solid 1px;
+    border-width: 0 1px 1px 0;
+    border-spacing: 0;
+    margin: 5px 0 5px 0;
+}
+
+td {
+    border: solid 1px;
+    border-width: 1px 0 0 1px;
+}
+
+.head-row {    
+    white-space: nowrap;
+    background-color: rgb(230,230,230);
+    font-weight: normal;
+    text-align: center;
+}
+
+.zone-input caption,
+.zone-output caption {
+    font-size: small;
+    background-color: rgb(230,230,230);
+}
+
+.zone-input td,
+.zone-info  td {
+    font-size: small;
+    padding: 2px 5px 2px 5px;    
+}
+
+.zone-output td,
+.zone-output caption {
+    font-size: x-small;
+}
+        
+        </style>
+        <!-- <script src='brython.js'></script> -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.3.0/brython.js"></script>        
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.3.0/brython_stdlib.js"></script>        
+    </head>
+    <body onload="brython(1)">
+        <h3>Please open with Firefox or Chrome, and with internet connection</h3>
+        <h3>NB-IoT Inband/Guardband Anchor Carrier EARFCN</h3>
+        <ul>
+            <div class='zone-input' id='zone-input'></div><br>
+            <div class='zone-output' id='zone-output'></div>
+        </ul>
+        <hr>
+        <h3>Band Info</h3>
+        <ul>
+            <li>Band information is per 36.101-g10 table 5.7.3-1. A copy is stored in this HTML for srcipt usage.</li>
+            <li>For adding new band, please open this html file with a text editor, goto line 75, add band info accordingly. </li>
+            <li>M<sub>DL</sub> and M<sub>UL</sub> are defined in 36.101 5.7.3F.</li>
+            <ul>
+                <li>M<sub>DL</sub> is used in SIB5-NB dl-CarrierFreq-r13 -> carrierFreqOffset-r13, when as a neighbor.</li>
+                <li>M<sub>UL</sub> is used in SIB2-NB ul-CarrierFreq-r13 -> carrierFreqOffset-r13.</li>
+            </ul>
+        </ul>
+        <script type="text/python">
+
+# 36.101-g10 table 36.101 5.7.3-1
+# FDL_low (MHz), DL EARFCN_Low, DL EARFCN_High, FUL_low (MHz), UL EARFCN Low, UL EARFCN High
+band_list = [
+[1,	    2110,	0,	    599,	1920,	18000,	18599],
+[2,	    1930,	600,	1199,	1850,	18600,	19199],
+[3,	    1805,	1200,	1949,	1710,	19200,	19949],
+[4,	    2110,	1950,	2399,	1710,	19950,	20399],
+[5,	    869,	2400,	2649,	824,	20400,	20649],
+[6,	    875,	2650,	2749,	830,	20650,	20749],
+[7,	    2620,	2750,	3449,	2500,	20750,	21449],
+[8,	    925,	3450,	3799,	880,	21450,	21799],
+[9,	    1844.9,	3800,	4149,	1749.9,	21800,	22149],
+[10,	2110,	4150,	4749,	1710,	22150,	22749],
+[11,	1475.9,	4750,	4949,	1427.9,	22750,	22949],
+[12,	729,	5010,	5179,	699,	23010,	23179],
+[13,	746,	5180,	5279,	777,	23180,	23279],
+[14,	758,	5280,	5379,	788,	23280,	23379],
+[17,	734,	5730,	5849,	704,	23730,	23849],
+[18,	860,	5850,	5999,	815,	23850,	23999],
+[19,	875,	6000,	6149,	830,	24000,	24149],
+[20,	791,	6150,	6449,	832,	24150,	24449],
+[21,	1495.9,	6450,	6599,	1447.9,	24450,	24599],
+[22,	3510,	6600,	7399,	3410,	24600,	25399],
+[23,	2180,	7500,	7699,	2000,	25500,	25699],
+[24,	1525,	7700,	8039,	1626.5,	25700,	26039],
+[25,	1930,	8040,	8689,	1850,	26040,	26689],
+[26,	859,	8690,	9039,	814,	26690,	27039],
+[27,	852,	9040,	9209,	807,	27040,	27209],
+[28,	758,	9210,	9659,	703,	27210,	27659],
+[29,	717,	9660,	9769,	"N/A",	"N/A",	"N/A"],
+[30,	2350,	9770,	9869,	2305,	27660,	27759],
+[31,	462.5,	9870,	9919,	452.5,	27760,	27809],
+[32,	1452,	9920,	10359,	"N/A",	"N/A",	"N/A"],
+[33,	1900,	36000,	36199,	1900,	36000,	36199],
+[34,	2010,	36200,	36349,	2010,	36200,	36349],
+[35,	1850,	36350,	36949,	1850,	36350,	36949],
+[36,	1930,	36950,	37549,	1930,	36950,	37549],
+[37,	1910,	37550,	37749,	1910,	37550,	37749],
+[38,	2570,	37750,	38249,	2570,	37750,	38249],
+[39,	1880,	38250,	38649,	1880,	38250,	38649],
+[40,	2300,	38650,	39649,	2300,	38650,	39649],
+[41,	2496,	39650,	1589,	2496,	39650,	1589],
+[42,	3400,	41590,	43589,	3400,	41590,	43589],
+[43,	3600,	43590,	45589,	3600,	43590,	45589],
+[44,	703,	45590,	46589,	703,	45590,	46589],
+[45,	1447,	46590,	46789,	1447,	46590,	46789],
+[46,	5150,	46790,	54539,	5150,	46790,	54539],
+[47,	5855,	54540,	55239,	5855,	54540,	55239],
+[48,	3550,	55240,	56739,	3550,	55240,	56739],
+[49,	3550,	56740,	58239,	3550,	56740,	58239],
+[50,	1432,	58240,	59089,	1432,	58240,	59089],
+[51,	1427,	59090,	59139,	1427,	59090,	59139],
+[52,	3300,	59140,	60139,	3300,	59140,	60139],
+[53,	2483.5,	60140,	60254,	2483.5,	60140,	60254],
+[65,	2110,	65536,	66435,	1920,	131072,	131971],
+[66,	2110,	66436,	67335,	1710,	131972,	132671],
+[67,	738,	67336,	67535,	"N/A",	"N/A",	"N/A"],
+[68,	753,	67536,	67835,	698,	132672,	132971],
+[69,	2570,	67836,	68335,	"N/A",	"N/A",	"N/A"],
+[70,	1995,	68336,	68585,	1695,	132972,	133121],
+[71,	617,	68586,	68935,	663,	133122,	133471],
+[72,	461,	68936,	68985,	451,	133472,	133521],
+[73,	460,	68986,	69035,	450,	133522,	133571],
+[74,	1475,	69036,	69465,	1427,	133572,	134001],
+[75,	1432,	69466,	70315,	"N/A",	"N/A",	"N/A"],
+[76,	1427,	70316,	70365,	"N/A",	"N/A",	"N/A"],
+[85,	728,	70366,	70545,	698,	134002,	134181],
+]
+
+class Band:
+    def  __init__(self, lst):
+        self.band = lst[0]
+        self.fdl_low = lst[1]
+        self.dl_earfcn_low = lst[2]
+        self.dl_earfcn_high = lst[3]
+        self.ful_low = lst[4]
+        self.ul_earfcn_low = lst[5]
+        self.ul_earfcn_high = lst[6]
+        self.fdl_high = self.fdl_low + (self.dl_earfcn_high - self.dl_earfcn_low)/10
+        self.ful_high = self.ful_low + (self.ul_earfcn_high - self.ul_earfcn_low)/10
+        self.bandwidth = (self.dl_earfcn_high - self.dl_earfcn_low + 1)//10  # MHz
+        self.num_prbs = self.bandwidth//5*25
+        # print(self.band, self.bandwidth)
+        
+    def belong_dl(self, earfcn):
+        return self.dl_earfcn_low <= earfcn <= self.dl_earfcn_high
+
+    def belong_ul(self, earfcn):
+        return self.ul_earfcn_low <= earfcn <= self.ul_earfcn_high
+        
+    def belong(self, earfcn):
+        return self.belong_dl(earfcn) or self.belong_ul(earfcn)
+
+    def get_freq(self, earfcn):
+        if self.belong_dl(earfcn):
+            return self.fdl_low + (earfcn-self.dl_earfcn_low)/10
+        elif self.belong_ul(earfcn):
+            return self.ful_low + (earfcn-self.ul_earfcn_low)/10
+        else:
+            return None
+            
+    def is_mfbi(self, dl_freq, ul_freq, bw, native_band):
+        if self.band == native_band:
+            return False
+        bw_mhz = {25:5, 50:10, 75:15, 100:20}[bw]
+        bw_mhz = bw_mhz / 2
+        dl_low = dl_freq - bw_mhz
+        dl_high = dl_freq + bw_mhz
+        ul_low = ul_freq - bw_mhz
+        ul_high = ul_freq + bw_mhz
+        return dl_low >= self.fdl_low and dl_high <= self.fdl_high and ul_low >= self.ful_low and ul_high <= self.ful_high
+
+fdd_band_list = [Band(l) for l in band_list if str(l[1]) != str(l[4]) and "N/A" not in l]
+fdd_band_dct = {o.band:o for o in fdd_band_list}
+
+def get_band(earfcn):
+    for b in fdd_band_list:
+        if b.belong(earfcn):
+            return b.band
+    return None
+
+def get_freq(earfcn):
+    for b in fdd_band_list:
+        if b.belong(earfcn):
+            return b.get_freq(earfcn)
+    return None
+
+
+def get_mfbi(dl_earfcn, ul_earfcn, bw, native_band):
+    dl_freq = get_freq(dl_earfcn) 
+    ul_freq = get_freq(ul_earfcn) 
+    return [o.band for o in fdd_band_list if o.is_mfbi(dl_freq, ul_freq, bw, native_band)]
+
+
+def get_dl_earfcn(band, freq):
+    bo = fdd_band_dct[band]
+    return round((freq - bo.fdl_low)*10) + bo.dl_earfcn_low
+
+def get_ul_earfcn(band, freq):
+    bo = fdd_band_dct[band]
+    return round((freq - bo.ful_low)*10) + bo.ul_earfcn_low
+
+
+####################################################################################################
+
+from browser import document, alert
+from browser.html import TABLE, TR, TD, SELECT, OPTION, CAPTION, INPUT
+from browser.html import TABLE, TR, TD, TH, CAPTION, BUTTON, H4, H5, SPAN, P, BR, DIV, STYLE, LI
+import sys
+
+class Parameter:
+    def __init__(self):
+        self.id = None
+        self.desc = None
+        self.range = None   
+        self.spec = ''
+        self.default = None
+        self.support_onchange = False
+        self.desc_td = None
+        self.range_td = None
+        self.spec_td = None
+        self.spec_title = ''
+        # self.result_td = TD()
+    
+    @property
+    def tr(self):
+        if self.is_sep:
+            style = {'background':'lightblue'}
+            return TR(TD(style=style, colspan=4))
+        if self.range_is_none:
+            style = {'background':'lightgrey'}
+            s = '' if self.default is None else '{}'.format(self.default)
+            self.range_td = TD(s, style=style)
+            self.desc_td = TD(self.desc)
+            self.spec_td = TD(self.spec)
+        elif self.range == '':
+            style = {'width':'130px'}
+            s = '' if self.default is None else '{}'.format(self.default)
+            self.input = INPUT(s, type='text', style=style)
+            self.range_td = TD(self.input)
+            self.desc_td = TD(self.desc)
+            self.spec_td = TD(self.spec)
+        else:  # list range
+            self.select = SELECT([OPTION(i) for i in self.range])
+            if self.default is not None:
+                self.select.selectedIndex = self.range.index(self.default)
+            self.range_td = TD(self.select, id=self.id)
+            self.desc_td = TD(self.desc)
+            self.spec_td = TD(self.spec)
+        self.range_td.title = self.spec_title
+        # return TR([self.desc_td, self.range_td, self.spec_td, self.result_td])
+        return TR([self.desc_td, self.range_td, self.spec_td])
+
+    @property
+    def range_is_none(self):
+        return self.range is None
+
+    @property
+    def is_sep(self):
+        return self.id == 'sep'
+        
+    @property
+    def value(self):
+        if self.is_sep:
+            return 0
+        if self.range_is_none:
+            s = self.range_td.text
+        elif self.range == '':
+            return self.input.value
+        elif isinstance(self.range, list):
+            e = self.select
+            s = e.options[e.selectedIndex].value
+        try:
+            if '.' in s:
+                return float(s)
+            else:
+                return int(s)
+        except:
+            return s
+
+    def set_desc(self, text):
+        self.desc_td.text = text
+
+    def set_spec(self, text):
+        self.spec_td.text = text
+        
+    def set_spec_html(self, text):
+        self.spec_td.html = text
+
+    # def set_result(self, text):
+       # self.result_td.text = text
+
+    def set_range(self, new_range):
+        if self.range_is_none:
+            self.range_td.text = new_range
+        else:
+            # should be called only for list range
+            value = self.value
+            self.select = SELECT([OPTION(i) for i in new_range])
+            if value in new_range:
+                self.select.selectedIndex = new_range.index(value)
+            self.range_td.clear()
+            self.range_td <= self.select
+        
+
+#############################################################################
+parameter_dict = {}
+
+t = Parameter()
+t.id    = 'sep'
+parameter_dict[t.id] = t
+
+t = Parameter()
+t.id    = 'host_bw'
+t.desc  = 'Host FDD Bandwidth (PRBs)'
+t.range = [25, 50, 75, 100]
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+
+t = Parameter()
+t.id    = 'host_band'
+t.desc  = 'Host FDD Band'
+t.range = [o.band for o in fdd_band_list]
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+
+t = Parameter()
+t.id    = 'host_dl_earfcn'
+t.desc  = 'Host DL EARFCN'
+t.range = ['']
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+t = Parameter()
+t.id    = 'host_ul_earfcn'
+t.desc  = 'Host UL EARFCN'
+t.range = ['']
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+t = Parameter()
+t.id    = 'mode'
+t.desc  = 'NB-IoT Mode <small>(0: inband, 1: guardband)</small>'
+t.range = [0, 1]
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+
+t = Parameter()
+t.id    = 'dl_anchor'
+t.desc  = 'DL Anchor Carrier Index'
+t.range = ['']
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+t = Parameter()
+t.id    = 'ul_anchor'
+t.desc  = 'UL Anchor Carrier Index'
+t.range = ['']
+t.spec  = ''
+t.default = None
+t.support_onchange = True
+parameter_dict[t.id] = t
+
+_parameters_list = list(parameter_dict.keys())
+
+#############################################################################
+def get_parameter(pid):
+    return parameter_dict[pid]
+#############################################################################    
+class ParameterList:
+    def __init__(self, *parameter_id_list):
+        self.names = parameter_id_list
+        self.parameter_list = [get_parameter(pid) for pid in parameter_id_list]
+        for p in self.parameter_list:
+            setattr(self, p.id, p)
+        heads = ['Name', 'Input', 'Result']
+        head_tds = [TD(s, Class='head-row') for s in heads]
+        head_tr = [TR(head_tds)]
+        caption = CAPTION('', style={'color':'red'})
+        trs = [caption] + head_tr + [p.tr for p in self.parameter_list]
+        self.table = TABLE(trs)
+
+    def bind_onchange(self):
+        for p in self.parameter_list:
+            if p.support_onchange:
+                document[p.id].bind('change', getattr(self, p.id + '_change'))
+        for p in self.parameter_list:
+            try:
+                if p.support_onchange:
+                    getattr(self, p.id + '_change')(None)
+            except NameError:
+                print("Expected Name Error:", sys.exc_info()[0])
+            except:
+                print("Unexpected error:", sys.exc_info()[0])
+                raise
+        
+    def host_bw_change(self, event):
+        # m = '_'.join(sys._getframe().f_code.co_name.split('_')[7:-2])  # m = parameter_name
+        # m = getattr(getattr(self, m), 'value')
+        self.update_host_band_range()        
+        self.update_host_earfcn_range()
+        self.update_mode_range()
+        self.update_anchor_range()
+        self.update_result()
+
+    def host_band_change(self, event):
+        self.update_host_earfcn_range()
+        self.update_result()
+
+    def host_dl_earfcn_change(self,event):
+        self.update_result()
+
+    def host_ul_earfcn_change(self,event):
+        self.update_result()
+
+    def mode_change(self,event):
+        self.update_anchor_range()
+        self.update_result()
+
+    def dl_anchor_change(self,event):
+        self.update_result()
+
+    def ul_anchor_change(self,event):
+        self.update_result()
+
+    def update_host_band_range(self):
+        self.host_band.set_range([o.band for o in fdd_band_list if o.num_prbs >= self.host_bw.value])
+
+    def update_host_earfcn_range(self):
+        self.host_dl_earfcn.set_range(get_dl_earfcn_range(self.host_band.value, self.host_bw.value))
+        self.host_ul_earfcn.set_range(get_ul_earfcn_range(self.host_band.value, self.host_bw.value))
+
+    def update_mode_range(self):
+        if self.host_bw.value == 25:
+            self.mode.set_range([0])
+        else:
+            self.mode.set_range([0, 1])
+        
+    def update_anchor_range(self):
+        if self.mode.value == 0:
+            self.update_inband_range()
+        else:
+            self.update_guardband_range()
+        
+    def update_inband_range(self):
+        dl_inband_anchor = {
+            25: [2, 7, 17, 22],
+            50: [4, 9, 14, 19, 30, 35, 40, 45],
+            75: [2, 7, 12, 17, 22, 27, 32, 42, 47, 52, 57, 62, 67, 72],
+            100:[4, 9, 14, 19, 24, 29, 34, 39, 44, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+        }
+        self.dl_anchor.set_range(dl_inband_anchor[self.host_bw.value])
+        self.dl_anchor.set_desc('DL Inband Anchor PRB Index')
+        
+        self.ul_anchor.set_range(list(range(self.host_bw.value)))
+        self.ul_anchor.set_desc('UL Inband Anchor PRB Index')
+        
+    def update_guardband_range(self):
+        dl_guardband_anchor = {
+            25: [-2392.5, 2392.5],
+            50: [-4792.5, -4702.5, -4597.5, 4597.5, 4702.5, 4792.5],
+            75: [-7297.5, -7192.5, -7102.5, -6997.5, -6892.5, 6892.5, 6997.5, 7102.5, 7192.5, 7297.5],
+            100:[-9802.5, -9697.5, -9592.5, -9502.5, -9397.5, -9292.5, -9202.5, -9097.5, 9097.5, 9202.5, 9292.5, 9397.5, 9502.5, 9592.5, 9697.5, 9802.5],
+        }
+        dl_guardband_anchor = {
+            50: [-4597.5, 4597.5],
+            75: [-6892.5, 6892.5],
+            100:[-9097.5, 9097.5],
+        }
+        self.dl_anchor.set_range(dl_guardband_anchor[self.host_bw.value])
+        self.dl_anchor.set_desc('DL Guardband Anchor Carrier Offset (KHz)')
+
+        ul_guardband_anchor = {
+            50: [-4590, 4590],
+            75: [-6840, 6840],
+            100:[-9090, 9090],
+        }
+        self.ul_anchor.set_range(ul_guardband_anchor[self.host_bw.value])
+        self.ul_anchor.set_desc('UL Guardband Anchor Carrier Offset (KHz)')
+
+    def update_ul_guardband_range(self):
+        if self.mode.value ==  1:
+            v = self.dl_anchor.value
+            d = {-4597.5: -4590, 4597.5: 4590,
+                 -6892.5: -6840, 6892.5: 6840,
+                 -9097.5: -9090, 9097.5: 9090,
+                }
+            v = d[v]
+            self.ul_anchor.set_range([v])
+
+    def update_result(self):
+        self.update_ul_guardband_range()
+        mfbi = get_mfbi(self.host_dl_earfcn.value, self.host_ul_earfcn.value, self.host_bw.value, self.host_band.value)
+        if mfbi:
+            s = 'Candidate MFBI ' + str(mfbi)
+            self.host_band.set_spec(s)
+        else:
+            self.host_band.set_spec('')
+        if self.mode.value == 0:    
+            dl_anchor_freq = cal_dl_inband_freq(self.dl_anchor.value, self.host_bw.value, self.host_dl_earfcn.value)
+            ul_anchor_freq = cal_ul_inband_freq(self.ul_anchor.value, self.host_bw.value, self.host_ul_earfcn.value)
+        else:
+            dl_anchor_freq = cal_dl_guardband_freq(self.dl_anchor.value, self.host_bw.value, self.host_dl_earfcn.value)
+            ul_anchor_freq = cal_ul_guardband_freq(self.ul_anchor.value, self.host_bw.value, self.host_ul_earfcn.value)
+        
+        dl_anchor_earfcn_freq = round(dl_anchor_freq * 10)/10
+        delta_100hz = (dl_anchor_freq - dl_anchor_earfcn_freq)*1000*10   # 100Hz
+        delta_100hz = round(delta_100hz)
+        mdl = round((delta_100hz - 25)/ 50)
+        
+        ul_anchor_earfcn_freq = round(ul_anchor_freq * 10)/10
+        delta_khz = (ul_anchor_freq - ul_anchor_earfcn_freq)*1000   # kHz
+        delta_khz = round(delta_khz)
+        mul = round(delta_khz / 5)
+        if mul == 10:
+            mul = -10
+            ul_anchor_earfcn_freq = (ul_anchor_earfcn_freq*10 + 1)/10
+        
+        bl = [self.host_band.value] + mfbi
+        dl_earfcn_dct = {b: get_dl_earfcn(b, dl_anchor_freq) for b in bl}
+        ul_earfcn_dct = {b: get_ul_earfcn(b, ul_anchor_freq) for b in bl}
+
+        #dl_anchor_result = '{}MHz'.format(dl_anchor_freq)
+        #ul_anchor_result = '{}MHz'.format(ul_anchor_freq)
+
+        #dl_anchor_result += ', {}MHz'.format(dl_anchor_earfcn_freq)
+        #ul_anchor_result += ', {}MHz'.format(ul_anchor_earfcn_freq)
+
+        #dl_anchor_result = 'EARFCN {<br>' + '<br>   '.join(['B{0}: {1}'.format(b, dl_earfcn_dct[b]) for b in bl]) + '<br>}'
+        #ul_anchor_result = 'EARFCN {<br>' + '<br>   '.join(['B{0}: {1}'.format(b, ul_earfcn_dct[b]) for b in bl]) + '<br>}'
+
+        dl_anchor_result = 'EARFCN <br>&emsp;' + '<br>&emsp;'.join(['B{0}: {1}'.format(b, dl_earfcn_dct[b]) for b in bl])
+        ul_anchor_result = 'EARFCN <br>&emsp;' + '<br>&emsp;'.join(['B{0}: {1}'.format(b, ul_earfcn_dct[b]) for b in bl])
+
+
+        dl_anchor_result += '<br>M<sub>DL</sub>={}'.format(mdl)
+        ul_anchor_result += '<br>M<sub>UL</sub>={}'.format(mul)
+        
+        self.dl_anchor.set_spec_html(dl_anchor_result)
+        self.ul_anchor.set_spec_html(ul_anchor_result)
+    
+            
+
+def get_dl_earfcn_range(host_band_num, host_bw):
+    bo = fdd_band_dct[host_band_num]
+    r = list(range(bo.dl_earfcn_low + host_bw, bo.dl_earfcn_high - host_bw+1+1))
+    return r
+    
+def get_ul_earfcn_range(host_band_num, host_bw):
+    bo = fdd_band_dct[host_band_num]
+    r = list(range(bo.ul_earfcn_low + host_bw, bo.ul_earfcn_high - host_bw+1+1))
+    return r
+    
+
+##########################################################################################################################################
+names = [
+'sep',
+'host_bw',
+'host_band',
+'host_dl_earfcn',
+'host_ul_earfcn',
+'mode',
+'sep',
+'dl_anchor',
+'ul_anchor',
+'sep',
+]
+
+cfg = ParameterList(*names)
+
+def cal_dl_inband_freq(idx, host_bw, host_dl_earfcn):
+    delta_khz = (idx + 0.5 - host_bw/2) * 180
+    if idx > host_bw/2:
+        delta_khz += 7.5
+    else:
+        delta_khz -= 7.5
+    freq = get_freq(host_dl_earfcn) + delta_khz/1000  # MHz
+    return freq
+
+def cal_dl_guardband_freq(idx, host_bw, host_dl_earfcn):
+    delta_khz = idx 
+    freq = get_freq(host_dl_earfcn) + delta_khz/1000  # MHz
+    return freq
+
+def cal_ul_inband_freq(idx, host_bw, host_ul_earfcn):
+    delta_khz = (idx + 0.5 - host_bw/2) * 180
+    freq = get_freq(host_ul_earfcn) + delta_khz/1000  # MHz
+    return freq
+
+def cal_ul_guardband_freq(idx, host_bw, host_ul_earfcn):
+    delta_khz = idx 
+    freq = get_freq(host_ul_earfcn) + delta_khz/1000  # MHz
+    return freq
+
+    
+##########################################################################################################################################
+document['zone-input'].clear()
+document['zone-input'] <= cfg.table
+#document['zone-input'] <= BUTTON('show result', id='main')
+cfg.bind_onchange()
+#document['main'].bind('click', main)
+
+
+
+
+        </script>
+    </body>
+</html>
